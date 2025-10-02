@@ -1,22 +1,26 @@
-import { useNavigate } from "react-router";
+// src/LoginForm.jsx
+import { useNavigate } from "react-router-dom";
 
-function LoginForm({ setUser }) {
+function LoginForm({ setUser, showNotification }) {
   const navigate = useNavigate();
 
   async function submitHandler(e) {
-    e.preventDefault()
-    const user = {
-      login: e.target.login.value,
-      password: e.target.password.value,
-    }
-    const { role, name } = await window.api.autorizeUser(user);
-    console.log(role, name)
-    setUser({ role, name })
+  e.preventDefault();
+  const user = {
+    login: e.target.login.value,
+    password: e.target.password.value,
+  };
+  try {
+    const { role, name } = await window.api.authorizeUser(user); // ← 2 'i'
+    setUser({ role, name });
     if (role === 'Администратор') {
       navigate('/main');
     }
-    document.querySelector('form').reset()
+    document.querySelector('form').reset();
+  } catch (err) {
+    showNotification('Ошибка авторизации', 'error');
   }
+}
 
   return (
     <>
@@ -35,8 +39,7 @@ function LoginForm({ setUser }) {
         navigate('/main');
       }}>Посмотреть товары</button>
     </>
-  )
+  );
 }
 
-export default LoginForm
-
+export default LoginForm;

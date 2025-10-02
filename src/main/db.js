@@ -1,14 +1,23 @@
-import { Client } from 'pg';
+// main/db.js
+import { Pool } from 'pg';
 
-export default async () => {
-  const client = new Client({
+async function connectDB() {
+  const pool = new Pool({
     user: 'postgres',
-    password: '1234',
     host: 'localhost',
-    port: '5432',
     database: 'demo_2026',
+    password: '1234', // ← ТВОЙ ПАРОЛЬ!
+    port: 5432,
   });
 
-  await client.connect();
-  return client;
-};
+  try {
+    await pool.query('SELECT NOW()');
+    console.log('✅ PostgreSQL подключена');
+  } catch (err) {
+    console.error('❌ Ошибка подключения к БД:', err.message);
+  }
+
+  return pool;
+}
+
+export default connectDB;

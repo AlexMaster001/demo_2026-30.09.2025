@@ -39,6 +39,51 @@ async function getGoods(event) {
   }
 }
 
+async function addGood(event, goodData) {
+  const { article, type, category, manufacturer, supplier, description, price, measure, quantity, discount, image_path } = goodData;
+  try {
+    await globalDbClient.query(
+      `INSERT INTO goods (article, type, category, manufacturer, supplier, description, price, measure, quantity, discount, image_path)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+      [article, type, category, manufacturer, supplier, description, price, measure, quantity, discount, image_path || 'picture.png']
+    );
+    return { success: true };
+  } catch (err) {
+    console.error('❌ Ошибка при добавлении товара:', err.message);
+    throw new Error('Не удалось добавить товар');
+  }
+}
+
+async function updateGood(event, goodData) {
+  const { id, article, type, category, manufacturer, supplier, description, price, measure, quantity, discount, image_path } = goodData;
+  try {
+    await globalDbClient.query(
+      `UPDATE goods SET article=$1, type=$2, category=$3, manufacturer=$4, supplier=$5, description=$6, 
+                        price=$7, measure=$8, quantity=$9, discount=$10, image_path=$11 WHERE id=$12`,
+      [article, type, category, manufacturer, supplier, description, price, measure, quantity, discount, image_path, id]
+    );
+    return { success: true };
+  } catch (err) {
+    console.error('❌ Ошибка при обновлении товара:', err.message);
+    throw new Error('Не удалось обновить товар');
+  }
+}
+
+async function deleteGood(event, id) {
+  try {
+    // Проверяем, есть ли товар в заказах
+    const orderCheck = await globalDbClient.query('SELECT * FROM orders WHERE good_id = $1', [id]);
+    if (orderCheck.rows.length > 0) {
+      return { success: false, message: 'Товар нельзя удалить — он присутствует в заказе' };
+    }
+
+    await globalDbClient.query('DELETE FROM goods WHERE id = $1', [id]);
+    return { success: true };
+  } catch (err) {
+    console.error('❌ Ошибка при удалении товара:', err.message);
+    return { success: false, message: 'Ошибка при удалении товара' };
+  }
+}
 function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 900,
@@ -84,6 +129,9 @@ app.whenReady().then(async () => {
   // ✅ Регистрируем IPC-обработчики
   ipcMain.handle('authorizeUser', authorize);
   ipcMain.handle('getGoods', getGoods);
+  ipcMain.handle('addGood', addGood);
+  ipcMain.handle('updateGood', updateGood);
+  ipcMain.handle('deleteGood', deleteGood);
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window);

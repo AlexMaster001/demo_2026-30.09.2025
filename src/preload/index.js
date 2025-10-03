@@ -4,7 +4,10 @@ import { electronAPI } from '@electron-toolkit/preload'
 
 const api = {
   authorizeUser: (user) => ipcRenderer.invoke("authorizeUser", user),
-  getGoods: () => ipcRenderer.invoke("getGoods")
+  getGoods: () => ipcRenderer.invoke("getGoods"),
+  addGood: (good) => ipcRenderer.invoke("addGood", good),
+  updateGood: (good) => ipcRenderer.invoke("updateGood", good),
+  deleteGood: (id) => ipcRenderer.invoke("deleteGood", id)
 };
 
 if (process.contextIsolated) {

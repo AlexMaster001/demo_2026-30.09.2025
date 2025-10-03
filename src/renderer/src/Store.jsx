@@ -3,13 +3,14 @@ import { useNavigate } from "react-router-dom";
 import GoodsCard from "./components/GoodsCard";
 import { useEffect, useState, useMemo } from "react";
 import EditGoodForm from "./components/EditGoodForm";
+import Dashboard from "./Dashboard";
 
 function Store({ user, setUser, showNotification }) {
   const [goods, setGoods] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState('asc');
   const [filterSupplier, setFilterSupplier] = useState('all');
-  const [editModal, setEditModal] = useState(null); // null или объект товара
+  const [editModal, setEditModal] = useState(null);
   const navigate = useNavigate();
 
   // Загрузка товаров
@@ -28,8 +29,11 @@ function Store({ user, setUser, showNotification }) {
         showNotification('Ошибка загрузки товаров', 'error');
       }
     };
-    loadData();
-  }, [showNotification]);
+
+    if (user?.role && user.role !== 'не авторизован') {
+      loadData();
+    }
+  }, [user, showNotification]);
 
   const uniqueSuppliers = useMemo(() => {
     return Array.from(new Set(goods.map(g => g.supplier).filter(Boolean)));
@@ -51,19 +55,14 @@ function Store({ user, setUser, showNotification }) {
       : result.toSorted((a, b) => b.quantity - a.quantity);
   }, [goods, searchTerm, filterSupplier, sortOrder]);
 
-  const logout = () => {
-    setUser({});
-    navigate('/');
-  };
-
-  // --- CRUD операции ---
+  // --- CRUD ---
 
   const handleAdd = () => {
     if (editModal !== null) {
       showNotification('Нельзя открыть две формы одновременно', 'warning');
       return;
     }
-    setEditModal({});
+    setEditModal({}); // Открываем форму добавления
   };
 
   const handleEdit = (good) => {
@@ -80,7 +79,14 @@ function Store({ user, setUser, showNotification }) {
     try {
       const result = await window.api.deleteGood(good.id);
       if (result.success) {
-        setGoods(prev => prev.filter(g => g.id !== good.id));
+        const updated = await window.api.getGoods();
+        const processed = updated.map(g => ({
+          ...g,
+          price: parseFloat(g.price) || 0,
+          quantity: parseInt(g.quantity) || 0,
+          discount: parseFloat(g.discount) || 0
+        }));
+        setGoods(processed);
         showNotification('Товар удалён', 'success');
       } else {
         showNotification(result.message || 'Нельзя удалить товар', 'error');
@@ -94,14 +100,19 @@ function Store({ user, setUser, showNotification }) {
     try {
       if (formData.id) {
         await window.api.updateGood(formData);
-        setGoods(prev => prev.map(g => g.id === formData.id ? { ...g, ...formData } : g));
         showNotification('Товар обновлён', 'success');
       } else {
         await window.api.addGood(formData);
-        const newGood = { ...formData, id: Date.now() }; // временный ID
-        setGoods(prev => [...prev, newGood]);
         showNotification('Товар добавлен', 'success');
       }
+      const updated = await window.api.getGoods();
+      const processed = updated.map(g => ({
+        ...g,
+        price: parseFloat(g.price) || 0,
+        quantity: parseInt(g.quantity) || 0,
+        discount: parseFloat(g.discount) || 0
+      }));
+      setGoods(processed);
       setEditModal(null);
     } catch (err) {
       showNotification(err.message || 'Ошибка сохранения', 'error');
@@ -111,17 +122,13 @@ function Store({ user, setUser, showNotification }) {
   const closeModal = () => setEditModal(null);
 
   return (
-    <div className="store">
-      {/* Уведомление */}
-      {editModal && <EditGoodForm good={editModal} onSave={handleSave} onCancel={closeModal} />}
-
-      {/* Хедер */}
-      <div className="header-controls">
-        <button onClick={logout} className="btn-logout">Выход</button>
-        {user.role === 'Администратор' && (
+    <Dashboard user={user} setUser={setUser}>
+      {/* Кнопка "Добавить" только для админа */}
+      {user.role === 'Администратор' && (
+        <div style={{ padding: '0 10px 10px' }}>
           <button onClick={handleAdd} className="btn-add">➕ Добавить товар</button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Поиск и фильтры */}
       <div className="filters">
@@ -162,7 +169,10 @@ function Store({ user, setUser, showNotification }) {
           ))
         )}
       </div>
-    </div>
+
+      {/* Форма добавления/редактирования */}
+      {editModal && <EditGoodForm good={editModal} onSave={handleSave} onCancel={closeModal} />}
+    </Dashboard>
   );
 }
 

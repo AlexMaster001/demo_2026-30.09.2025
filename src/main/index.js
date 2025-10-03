@@ -114,6 +114,21 @@ function createWindow() {
   }
 }
 
+async function getOrders(event) {
+  try {
+    const response = await globalDbClient.query(`
+      SELECT o.*, g.article as good_article 
+      FROM orders o 
+      JOIN goods g ON o.good_id = g.id
+      ORDER BY o.created_at DESC
+    `);
+    return response.rows;
+  } catch (err) {
+    console.error('❌ Ошибка при загрузке заказов:', err.message);
+    throw err;
+  }
+}
+
 app.whenReady().then(async () => {
   electronApp.setAppUserModelId('com.electron');
 
@@ -132,6 +147,7 @@ app.whenReady().then(async () => {
   ipcMain.handle('addGood', addGood);
   ipcMain.handle('updateGood', updateGood);
   ipcMain.handle('deleteGood', deleteGood);
+  ipcMain.handle('getOrders', getOrders);
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window);

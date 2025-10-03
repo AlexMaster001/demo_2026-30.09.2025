@@ -21,7 +21,18 @@ VALUES
 ('Авторизированный клиент', 'Старикова Елена Павловна', '4np6se@mail.com', 'AtnDjr');
 
 CREATE TABLE goods
-(
+(    id serial PRIMARY KEY,
+    article text,
+    type text,
+    measure text,
+    price text,
+    supplier text,
+    manufacturer text,
+    category text,
+    discount text,
+    quantity text,
+    description text,
+    photo text
     id serial PRIMARY KEY,
     article text,
     type text,

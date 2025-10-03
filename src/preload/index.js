@@ -7,7 +7,8 @@ const api = {
   getGoods: () => ipcRenderer.invoke("getGoods"),
   addGood: (good) => ipcRenderer.invoke("addGood", good),
   updateGood: (good) => ipcRenderer.invoke("updateGood", good),
-  deleteGood: (id) => ipcRenderer.invoke("deleteGood", id)
+  deleteGood: (id) => ipcRenderer.invoke("deleteGood", id),
+  getOrders: () => ipcRenderer.invoke('getOrders')
 };
 
 if (process.contextIsolated) {

@@ -6,7 +6,6 @@ const GoodsCard = ({ good }) => {
   const price = parseFloat(good.price) || 0;
   const discountPrice = discount > 0 ? price * (1 - discount / 100) : null;
 
-  // Нормализация пути к фото
   const photoSrc = (() => {
     const photo = good.image_path?.trim() || good.photo?.trim();
     if (!photo || photo === '' || photo === ' ') {
@@ -24,13 +23,8 @@ const GoodsCard = ({ good }) => {
   return (
     <div className={cardClass}>
       <div className="goodsPhoto">
-        <img
-          src={photoSrc}
-          alt={good.article}
-          onError={(e) => { e.target.src = '/assets/picture.png'; }}
-        />
+        <img src={photoSrc} alt={good.article} onError={(e) => { e.target.src = '/assets/picture.png'; }} />
       </div>
-
       <div className="goodsInfo">
         <div className="goodsHeading">{`${good.category} | ${good.type}`}</div>
         <p><strong>Артикул:</strong> {good.article}</p>
@@ -38,7 +32,6 @@ const GoodsCard = ({ good }) => {
         <p><strong>Поставщик:</strong> {good.supplier}</p>
         <p><strong>Производитель:</strong> {good.manufacturer}</p>
         <p><strong>Ед. изм.:</strong> {good.measure}</p>
-
         <div className="price-block">
           {discountPrice ? (
             <>
@@ -49,16 +42,10 @@ const GoodsCard = ({ good }) => {
             <span className="current-price">₽{price.toFixed(2)}</span>
           )}
         </div>
-
         <p><strong>На складе:</strong> {good.quantity} шт.</p>
       </div>
-
       <div className="goodsDiscount">
-        {discount > 0 ? (
-          <h3>{Math.round(discount)}%</h3>
-        ) : (
-          <h3>—</h3>
-        )}
+        {discount > 0 ? <h3>{Math.round(discount)}%</h3> : <h3>—</h3>}
       </div>
     </div>
   );

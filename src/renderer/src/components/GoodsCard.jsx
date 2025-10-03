@@ -9,9 +9,9 @@ const GoodsCard = ({ good }) => {
   const photoSrc = (() => {
     const photo = good.image_path?.trim() || good.photo?.trim();
     if (!photo || photo === '' || photo === ' ') {
-      return '/assets/picture.png';
+      return 'src/assets/picture.png';
     }
-    return `/assets/${photo}`;
+    return `src/assets/${photo}`;
   })();
 
   const cardClass = [
@@ -23,7 +23,7 @@ const GoodsCard = ({ good }) => {
   return (
     <div className={cardClass}>
       <div className="goodsPhoto">
-        <img src={photoSrc} alt={good.article} onError={(e) => { e.target.src = '/assets/picture.png'; }} />
+        <img src={photoSrc} alt={good.article} onError={(e) => { e.target.src = 'src/assets/picture.png'; }} />
       </div>
       <div className="goodsInfo">
         <div className="goodsHeading">{`${good.category} | ${good.type}`}</div>
